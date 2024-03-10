@@ -13,10 +13,17 @@ contract OFTV2 is BaseOFTV2, ERC20 {
         string memory _symbol,
         uint8 _sharedDecimals,
         address _lzEndpoint
-    ) ERC20(_name, _symbol) BaseOFTV2(_sharedDecimals, _lzEndpoint) {
+    )
+        ERC20(_name, _symbol)
+        BaseOFTV2(_sharedDecimals, _lzEndpoint)
+        Ownable(msg.sender)
+    {
         uint8 decimals = decimals();
-        require(_sharedDecimals <= decimals, "OFT: sharedDecimals must be <= decimals");
-        ld2sdRate = 10**(decimals - _sharedDecimals);
+        require(
+            _sharedDecimals <= decimals,
+            "OFT: sharedDecimals must be <= decimals"
+        );
+        ld2sdRate = 10 ** (decimals - _sharedDecimals);
     }
 
     /************************************************************************
@@ -61,7 +68,8 @@ contract OFTV2 is BaseOFTV2, ERC20 {
     ) internal virtual override returns (uint) {
         address spender = _msgSender();
         // if transfer from this contract, no need to check allowance
-        if (_from != address(this) && _from != spender) _spendAllowance(_from, spender, _amount);
+        if (_from != address(this) && _from != spender)
+            _spendAllowance(_from, spender, _amount);
         _transfer(_from, _to, _amount);
         return _amount;
     }

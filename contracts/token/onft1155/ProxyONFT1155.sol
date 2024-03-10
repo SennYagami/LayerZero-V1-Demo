@@ -12,13 +12,23 @@ contract ProxyONFT1155 is ONFT1155Core, IERC1155Receiver {
 
     IERC1155 public immutable token;
 
-    constructor(address _lzEndpoint, address _proxyToken) ONFT1155Core(_lzEndpoint) {
-        require(_proxyToken.supportsInterface(type(IERC1155).interfaceId), "ProxyONFT1155: invalid ERC1155 token");
+    constructor(
+        address _lzEndpoint,
+        address _proxyToken
+    ) ONFT1155Core(_lzEndpoint) Ownable(msg.sender) {
+        require(
+            _proxyToken.supportsInterface(type(IERC1155).interfaceId),
+            "ProxyONFT1155: invalid ERC1155 token"
+        );
         token = IERC1155(_proxyToken);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ONFT1155Core, IERC165) returns (bool) {
-        return interfaceId == type(IERC1155Receiver).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ONFT1155Core, IERC165) returns (bool) {
+        return
+            interfaceId == type(IERC1155Receiver).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     function _debitFrom(
@@ -28,8 +38,17 @@ contract ProxyONFT1155 is ONFT1155Core, IERC1155Receiver {
         uint[] memory _tokenIds,
         uint[] memory _amounts
     ) internal virtual override {
-        require(_from == _msgSender(), "ProxyONFT1155: owner is not send caller");
-        token.safeBatchTransferFrom(_from, address(this), _tokenIds, _amounts, "");
+        require(
+            _from == _msgSender(),
+            "ProxyONFT1155: owner is not send caller"
+        );
+        token.safeBatchTransferFrom(
+            _from,
+            address(this),
+            _tokenIds,
+            _amounts,
+            ""
+        );
     }
 
     function _creditTo(
@@ -38,7 +57,13 @@ contract ProxyONFT1155 is ONFT1155Core, IERC1155Receiver {
         uint[] memory _tokenIds,
         uint[] memory _amounts
     ) internal virtual override {
-        token.safeBatchTransferFrom(address(this), _toAddress, _tokenIds, _amounts, "");
+        token.safeBatchTransferFrom(
+            address(this),
+            _toAddress,
+            _tokenIds,
+            _amounts,
+            ""
+        );
     }
 
     function onERC1155Received(

@@ -14,7 +14,11 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
     // total amount is transferred from this chain to other chains, ensuring the total is less than uint64.max in sd
     uint public outboundAmount;
 
-    constructor(address _token, uint8 _sharedDecimals, address _lzEndpoint) BaseOFTWithFee(_sharedDecimals, _lzEndpoint) {
+    constructor(
+        address _token,
+        uint8 _sharedDecimals,
+        address _lzEndpoint
+    ) BaseOFTWithFee(_sharedDecimals, _lzEndpoint) Ownable(msg.sender) {
         innerToken = IERC20(_token);
 
         (bool success, bytes memory data) = _token.staticcall(
@@ -23,13 +27,16 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
         require(success, "ProxyOFTWithFee: failed to get token decimals");
         uint8 decimals = abi.decode(data, (uint8));
 
-        require(_sharedDecimals <= decimals, "ProxyOFTWithFee: sharedDecimals must be <= decimals");
+        require(
+            _sharedDecimals <= decimals,
+            "ProxyOFTWithFee: sharedDecimals must be <= decimals"
+        );
         ld2sdRate = 10 ** (decimals - _sharedDecimals);
     }
 
     /************************************************************************
-    * public functions
-    ************************************************************************/
+     * public functions
+     ************************************************************************/
     function circulatingSupply() public view virtual override returns (uint) {
         return innerToken.totalSupply() - outboundAmount;
     }
@@ -39,10 +46,18 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
     }
 
     /************************************************************************
-    * internal functions
-    ************************************************************************/
-    function _debitFrom(address _from, uint16, bytes32, uint _amount) internal virtual override returns (uint) {
-        require(_from == _msgSender(), "ProxyOFTWithFee: owner is not send caller");
+     * internal functions
+     ************************************************************************/
+    function _debitFrom(
+        address _from,
+        uint16,
+        bytes32,
+        uint _amount
+    ) internal virtual override returns (uint) {
+        require(
+            _from == _msgSender(),
+            "ProxyOFTWithFee: owner is not send caller"
+        );
 
         _amount = _transferFrom(_from, address(this), _amount);
 
@@ -53,12 +68,19 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
         // check total outbound amount
         outboundAmount += amount;
         uint cap = _sd2ld(type(uint64).max);
-        require(cap >= outboundAmount, "ProxyOFTWithFee: outboundAmount overflow");
+        require(
+            cap >= outboundAmount,
+            "ProxyOFTWithFee: outboundAmount overflow"
+        );
 
         return amount;
     }
 
-    function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns (uint) {
+    function _creditTo(
+        uint16,
+        address _toAddress,
+        uint _amount
+    ) internal virtual override returns (uint) {
         outboundAmount -= _amount;
 
         // tokens are already in this contract, so no need to transfer
@@ -69,7 +91,11 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
         return _transferFrom(address(this), _toAddress, _amount);
     }
 
-    function _transferFrom(address _from, address _to, uint _amount) internal virtual override returns (uint) {
+    function _transferFrom(
+        address _from,
+        address _to,
+        uint _amount
+    ) internal virtual override returns (uint) {
         uint before = innerToken.balanceOf(_to);
         if (_from == address(this)) {
             innerToken.safeTransfer(_to, _amount);

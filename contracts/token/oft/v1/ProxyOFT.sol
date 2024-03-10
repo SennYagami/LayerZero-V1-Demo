@@ -10,13 +10,17 @@ contract ProxyOFT is OFTCore {
 
     IERC20 internal immutable innerToken;
 
-    constructor(address _lzEndpoint, address _token) OFTCore(_lzEndpoint) {
+    constructor(
+        address _lzEndpoint,
+        address _token
+    ) OFTCore(_lzEndpoint) Ownable(msg.sender) {
         innerToken = IERC20(_token);
     }
 
     function circulatingSupply() public view virtual override returns (uint) {
         unchecked {
-            return innerToken.totalSupply() - innerToken.balanceOf(address(this));
+            return
+                innerToken.totalSupply() - innerToken.balanceOf(address(this));
         }
     }
 

@@ -33,7 +33,7 @@ contract OFTStakingMockV2 is IOFTReceiverV2 {
     // _oft can be any composable OFT contract, e.g. ComposableOFT, ComposableBasedOFT and ComposableProxyOFT.
     constructor(address _oft) {
         oft = IOFTV2(_oft);
-        IERC20(oft.token()).safeApprove(_oft, type(uint).max);
+        IERC20(oft.token()).approve(_oft, type(uint).max);
     }
 
     function setRemoteStakingContract(uint16 _chainId, bytes32 _stakingContract) external {

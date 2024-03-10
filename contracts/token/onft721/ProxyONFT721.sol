@@ -16,13 +16,20 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
         uint _minGasToTransfer,
         address _lzEndpoint,
         address _proxyToken
-    ) ONFT721Core(_minGasToTransfer, _lzEndpoint) {
-        require(_proxyToken.supportsInterface(type(IERC721).interfaceId), "ProxyONFT721: invalid ERC721 token");
+    ) ONFT721Core(_minGasToTransfer, _lzEndpoint) Ownable(msg.sender) {
+        require(
+            _proxyToken.supportsInterface(type(IERC721).interfaceId),
+            "ProxyONFT721: invalid ERC721 token"
+        );
         token = IERC721(_proxyToken);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(IERC721Receiver).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId == type(IERC721Receiver).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     function _debitFrom(
@@ -31,7 +38,10 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
         bytes memory,
         uint _tokenId
     ) internal virtual override {
-        require(_from == _msgSender(), "ProxyONFT721: owner is not send caller");
+        require(
+            _from == _msgSender(),
+            "ProxyONFT721: owner is not send caller"
+        );
         token.safeTransferFrom(_from, address(this), _tokenId);
     }
 

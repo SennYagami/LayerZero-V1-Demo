@@ -18,15 +18,20 @@ contract ProxyOFTV2 is BaseOFTV2 {
         address _token,
         uint8 _sharedDecimals,
         address _lzEndpoint
-    ) BaseOFTV2(_sharedDecimals, _lzEndpoint) {
+    ) BaseOFTV2(_sharedDecimals, _lzEndpoint) Ownable(msg.sender) {
         innerToken = IERC20(_token);
 
-        (bool success, bytes memory data) = _token.staticcall(abi.encodeWithSignature("decimals()"));
+        (bool success, bytes memory data) = _token.staticcall(
+            abi.encodeWithSignature("decimals()")
+        );
         require(success, "ProxyOFT: failed to get token decimals");
         uint8 decimals = abi.decode(data, (uint8));
 
-        require(_sharedDecimals <= decimals, "ProxyOFT: sharedDecimals must be <= decimals");
-        ld2sdRate = 10**(decimals - _sharedDecimals);
+        require(
+            _sharedDecimals <= decimals,
+            "ProxyOFT: sharedDecimals must be <= decimals"
+        );
+        ld2sdRate = 10 ** (decimals - _sharedDecimals);
     }
 
     /************************************************************************
